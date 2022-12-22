@@ -1,4 +1,11 @@
-import {View, Text, StyleSheet, FlatList, VirtualizedList} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  VirtualizedList,
+  ActivityIndicator,
+} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import AppLayout from '../../component/AppLayout';
 import ScreenTitle from '../../component/ScreenTitle';
@@ -11,10 +18,14 @@ import {PATH} from '../../api/apiPath';
 const Gallery = ({navigation, route}) => {
   const [toggel, setToggel] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [albumsData, setAlbumsData] = useState([]);
-  const [albumsDetails, setAlbumsDetails] = useState([]);
+  const [albumsData, setAlbumsData] = useState({data: [], loading: false});
+  const [albumsDetails, setAlbumsDetails] = useState({
+    data: [],
+    loading: false,
+  });
   const [openImage, setOpenImage] = useState('');
   const [openGallery, setOpenGallery] = useState({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getAlbums();
@@ -28,26 +39,37 @@ const Gallery = ({navigation, route}) => {
 
   const getAlbumsDetails = albumId => {
     setOpenGallery(albumId);
+    setAlbumsDetails({data: [], loading: true});
+
     const url = `${PATH.USER_IMAGES}${albumId.id}`;
     instance
       .get(url)
       .then(res => {
         if (res && res.length) {
-          setAlbumsDetails(res);
+          setAlbumsDetails({data: [...res], loading: false});
         }
       })
-      .catch(err => {});
+      .catch(err => {
+        setAlbumsDetails({data: [], loading: false});
+      });
   };
 
   const getAlbums = () => {
+    setAlbumsData({data: [], loading: true});
     const url = `${PATH.USER_ALBUMS}${route?.params?.item?.id}`;
     console.log(url);
     instance
       .get(url)
       .then(res => {
-        setAlbumsData(res ?? []);
+        setAlbumsData({data: [...res] ?? [], loading: false});
+
+        setLoading(false);
       })
-      .catch(err => {});
+      .catch(err => {
+        setAlbumsData({data: [], loading: false});
+
+        // setLoading(false);
+      });
   };
 
   const closeModal = () => {
@@ -68,9 +90,11 @@ const Gallery = ({navigation, route}) => {
         openImage={openImage}
       />
 
-      {!toggel ? (
+      {albumsData.loading ? (
+        <ActivityIndicator />
+      ) : !toggel ? (
         <FlatList
-          data={albumsData ?? []}
+          data={albumsData.data ?? []}
           numColumns={2}
           showsVerticalScrollIndicator={false}
           renderItem={(item, index) => {
@@ -84,7 +108,7 @@ const Gallery = ({navigation, route}) => {
           <View style={styles.container}>
             <View style={styles.sectionOne}>
               <FlatList
-                data={albumsData}
+                data={albumsData.data}
                 showsVerticalScrollIndicator={false}
                 renderItem={(item, index) => {
                   return (
@@ -102,21 +126,27 @@ const Gallery = ({navigation, route}) => {
               <Text numberOfLines={1} style={styles.albumTitle}>
                 {openGallery.title}
               </Text>
-              <FlatList
-                data={albumsDetails}
-                numColumns={2}
-                showsVerticalScrollIndicator={false}
-                renderItem={(item, index) => {
-                  return (
-                    <ImageCard
-                      photos={item}
-                      imgOnly={true}
-                      key={index}
-                      onPress={onImageClick}
-                    />
-                  );
-                }}
-              />
+              {albumsDetails.loading ? (
+                <View style={styles.center}>
+                  <ActivityIndicator />
+                </View>
+              ) : (
+                <FlatList
+                  data={albumsDetails.data}
+                  numColumns={2}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={(item, index) => {
+                    return (
+                      <ImageCard
+                        photos={item}
+                        imgOnly={true}
+                        key={index}
+                        onPress={onImageClick}
+                      />
+                    );
+                  }}
+                />
+              )}
             </View>
           </View>
         </View>
@@ -145,6 +175,11 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: '700',
     marginBottom: 8,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

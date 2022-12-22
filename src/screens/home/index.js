@@ -1,4 +1,10 @@
-import {View, Text, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  AppState,
+  ActivityIndicator,
+} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import AppLayout from '../../component/AppLayout';
 import ScreenTitle from '../../component/ScreenTitle';
@@ -10,6 +16,9 @@ import {PATH} from '../../api/apiPath';
 const Home = ({navigation}) => {
   console.log(navigation);
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  console.log(AppState);
 
   useEffect(() => {
     getAllAbumsData();
@@ -23,14 +32,18 @@ const Home = ({navigation}) => {
   };
 
   const getAllAbumsData = () => {
+    setLoading(true);
     instance
       .get(PATH.ALL_ALBUMS)
       .then(res => {
         if (res && res.length) {
           getUsersWithAlbums(res);
         }
+        setLoading(false);
       })
-      .catch(err => {});
+      .catch(err => {
+        setLoading(false);
+      });
   };
 
   const getUsersWithAlbums = albums => {
@@ -64,9 +77,13 @@ const Home = ({navigation}) => {
     <AppLayout>
       <ScreenTitle>People</ScreenTitle>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {users.map((item, index) => {
-          return <PeopleCard item={item} key={index} onPress={onCardClick} />;
-        })}
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          users.map((item, index) => {
+            return <PeopleCard item={item} key={index} onPress={onCardClick} />;
+          })
+        )}
       </ScrollView>
     </AppLayout>
   );
