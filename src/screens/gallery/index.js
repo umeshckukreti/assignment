@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  VirtualizedList,
   ActivityIndicator,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
@@ -15,7 +14,7 @@ import ImageCard from '../../component/ImageCard';
 import instance from '../../api/interceptor';
 import {PATH} from '../../api/apiPath';
 
-const Gallery = ({navigation, route}) => {
+const Gallery = ({route}) => {
   const [toggel, setToggel] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [albumsData, setAlbumsData] = useState({data: [], loading: false});
@@ -25,7 +24,6 @@ const Gallery = ({navigation, route}) => {
   });
   const [openImage, setOpenImage] = useState('');
   const [openGallery, setOpenGallery] = useState({});
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getAlbums();
@@ -62,13 +60,9 @@ const Gallery = ({navigation, route}) => {
       .get(url)
       .then(res => {
         setAlbumsData({data: [...res] ?? [], loading: false});
-
-        setLoading(false);
       })
       .catch(err => {
         setAlbumsData({data: [], loading: false});
-
-        // setLoading(false);
       });
   };
 

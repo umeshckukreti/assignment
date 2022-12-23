@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  AppState,
-  ActivityIndicator,
-} from 'react-native';
+import {ScrollView, AppState, ActivityIndicator} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import AppLayout from '../../component/AppLayout';
 import ScreenTitle from '../../component/ScreenTitle';
